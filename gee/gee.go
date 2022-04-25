@@ -6,7 +6,7 @@ import (
 )
 
 //定义路由映射的处理方法
-type HandlerFunc func(http.ResponseWriter, *http.Request)
+type HandlerFunc func(*Context)
 
 type Engine struct {
 	router map[string]HandlerFunc
