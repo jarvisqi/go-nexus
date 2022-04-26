@@ -1,5 +1,7 @@
 package gee
 
+import "strings"
+
 //使用 Trie 树实现动态路由(dynamic route)解析
 
 type node struct {
@@ -29,4 +31,40 @@ func (n *node) matchChildren(part string) []*node {
 		}
 	}
 	return nodes
+}
+
+//递归查找每一层的节点，如果没有匹配到当前part的节点，则新建一个
+func (n *node) insert(patten string, parts []string, height int) {
+	if len(parts) == height {
+		n.pattern = patten
+		return
+	}
+	part := parts[height]
+	child := n.matchChild(part)
+	if child == nil {
+		child = &node{part: part, isWild: part[0] == ':' || part[0] == '*'}
+		n.children = append(n.children, child)
+	}
+	child.insert(patten, parts, height+1)
+}
+
+//所有匹配路由
+func (n *node) search(parts []string, height int) *node {
+	if len(parts) == height || strings.HasPrefix(n.part, "*") {
+		if n.pattern == "" {
+			return nil
+		}
+		return n
+	}
+	part := parts[height]
+	children := n.matchChildren(part)
+
+	for _, child := range children {
+		result := child.search(parts, height+1)
+		if result != nil {
+			return result
+		}
+	}
+
+	return nil
 }
