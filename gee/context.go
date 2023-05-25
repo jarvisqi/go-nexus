@@ -9,10 +9,13 @@ import (
 type H map[string]interface{}
 
 type Context struct {
-	Writer     http.ResponseWriter
-	Req        *http.Request
-	Path       string
-	Method     string
+	Writer http.ResponseWriter
+	Req    *http.Request
+	// request info
+	Path   string
+	Method string
+	Params map[string]string
+	// response info
 	StatusCode int
 }
 
@@ -25,35 +28,40 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 	}
 }
 
-//postform取值
+func (c *Context) Param(key string) string {
+	value, _ := c.Params[key]
+	return value
+}
+
+// postform取值
 func (c *Context) PostForm(key string) string {
 	return c.Req.FormValue(key)
 }
 
-//url取值
+// url取值
 func (c *Context) Query(key string) string {
 	return c.Req.URL.Query().Get(key)
 }
 
-//状态码
+// 状态码
 func (c *Context) Status(code int) {
 	c.StatusCode = code
 	c.Writer.WriteHeader(code)
 }
 
-//设置请求头
+// 设置请求头
 func (c *Context) SetHeader(key string, value string) {
 	c.Writer.Header().Set(key, value)
 }
 
-//返回string
+// 返回string
 func (c *Context) String(code int, format string, values ...interface{}) {
 	c.SetHeader("Content-Type", "text/plain")
 	c.Status(code)
 	c.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
-//返回json
+// 返回json
 func (c *Context) JSON(code int, obj interface{}) {
 	c.SetHeader("Content-Type", "application/json")
 	c.Status(code)
@@ -69,7 +77,7 @@ func (c *Context) Data(code int, data []byte) {
 	c.Writer.Write(data)
 }
 
-//返回html
+// 返回html
 func (c *Context) HTML(code int, html string) {
 	c.SetHeader("Content-Type", "text/html")
 	c.Status(code)
